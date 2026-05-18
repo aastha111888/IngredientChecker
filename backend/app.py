@@ -3,12 +3,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 from checker import check_ingredients
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 app = Flask(__name__)
+CORS(app)
 
 _MIME_BY_KIND = {
     "jpeg": "image/jpeg",

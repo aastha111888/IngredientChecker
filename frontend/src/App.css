@@ -4,3 +4,148 @@
   max-width: 40rem;
   text-align: center;
 }
+
+.image-uploader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.upload-btn,
+.check-btn {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.upload-btn:disabled,
+.check-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.check-btn {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.preview img {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.loading {
+  color: #555;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.results {
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.verdict-banner {
+  padding: 1.25rem 1rem;
+  border-radius: 8px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  text-align: center;
+}
+
+.verdict-safe {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.verdict-unsafe {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.verdict-uncertain {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.verdict-reason {
+  margin: 1rem 0 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.ingredient-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ingredient-row {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ingredient-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ingredient-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-safe {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-toxic {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-uncertain {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.ingredient-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
