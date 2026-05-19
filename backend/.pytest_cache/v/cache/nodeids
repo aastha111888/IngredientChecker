@@ -1,0 +1,5 @@
+[
+  "tests/test_app.py::test_check_ingredients_returns_200_with_json_structure",
+  "tests/test_app.py::test_check_ingredients_returns_400_when_no_image",
+  "tests/test_app.py::test_check_ingredients_returns_400_when_not_recognized_image_type"
+]
