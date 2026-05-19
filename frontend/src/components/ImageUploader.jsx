@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-const API_URL = 'http://localhost:8080/check-ingredients'
+const API_URL = `${import.meta.env.VITE_API_URL}/check-ingredients`
 
 function CameraIcon() {
   return (
