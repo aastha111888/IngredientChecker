@@ -13,7 +13,7 @@ function Landing() {
           what your dog eats every day
         </p>
         <div className="landing-actions">
-          <Link to="/" className="landing-btn landing-btn--primary">
+          <Link to="/log" className="landing-btn landing-btn--primary">
             Daily Log
           </Link>
           <Link to="/checker" className="landing-btn landing-btn--outline">

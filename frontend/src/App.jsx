@@ -83,16 +83,16 @@ function AppMenu({ dogs, selectedDog, onSelectDog }) {
             <button
               type="button"
               role="menuitem"
-              className={`app-menu-item${location.pathname === '/welcome' ? ' app-menu-item-active' : ''}`}
-              onClick={() => navigateTo('/welcome')}
+              className={`app-menu-item${location.pathname === '/' ? ' app-menu-item-active' : ''}`}
+              onClick={() => navigateTo('/')}
             >
               Home
             </button>
             <button
               type="button"
               role="menuitem"
-              className={`app-menu-item${location.pathname === '/' ? ' app-menu-item-active' : ''}`}
-              onClick={() => navigateTo('/')}
+              className={`app-menu-item${location.pathname === '/log' ? ' app-menu-item-active' : ''}`}
+              onClick={() => navigateTo('/log')}
             >
               Daily Log
             </button>
@@ -164,13 +164,13 @@ function AppShell() {
     <div className="app-shell">
       <AppMenu dogs={dogs} selectedDog={selectedDog} onSelectDog={setSelectedDog} />
       <Routes>
-        <Route path="/welcome" element={<Landing />} />
+        <Route path="/" element={<Landing />} />
         <Route
-          path="/"
+          path="/log"
           element={<DailyLog dogs={dogs} dogsReady={dogsReady} selectedDog={selectedDog} />}
         />
-        <Route path="/dogs" element={<MyDogs />} />
         <Route path="/checker" element={<IngredientCheckerPage />} />
+        <Route path="/dogs" element={<MyDogs />} />
       </Routes>
     </div>
   )
