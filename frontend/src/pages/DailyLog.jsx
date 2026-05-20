@@ -10,6 +10,8 @@ const TIME_OF_DAY_LABELS = {
   evening: 'Evening',
 }
 
+const DAYS_IN_VIEW = 7
+
 function getTimeOfDay(date) {
   const hour = date.getHours()
   if (hour < 12) return 'morning'
@@ -17,19 +19,28 @@ function getTimeOfDay(date) {
   return 'evening'
 }
 
-function formatDateHeading(date) {
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+function startOfDay(date) {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
 }
 
-function formatTime(date) {
+function formatFriendlyDate(date) {
+  const today = startOfDay(new Date())
+  const target = startOfDay(date)
+  const diffDays = Math.round((today - target) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+
+  return date.toLocaleDateString('en-US', { weekday: 'long' })
+}
+
+function formatTime12Hour(date) {
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
+    hour12: true,
   })
 }
 
@@ -38,36 +49,47 @@ function toDatetimeLocalValue(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-function groupMealsByDateAndTime(meals) {
-  const byDate = new Map()
+function buildWeekColumns(meals) {
+  const mealsByDateKey = new Map()
 
   for (const meal of meals) {
-    const eatenAt = new Date(meal.eaten_at)
-    const dateKey = eatenAt.toLocaleDateString('en-CA')
-
-    if (!byDate.has(dateKey)) {
-      byDate.set(dateKey, {
-        date: eatenAt,
-        periods: { morning: [], afternoon: [], evening: [] },
-      })
+    const dateKey = new Date(meal.eaten_at).toLocaleDateString('en-CA')
+    if (!mealsByDateKey.has(dateKey)) {
+      mealsByDateKey.set(dateKey, [])
     }
-
-    byDate.get(dateKey).periods[getTimeOfDay(eatenAt)].push(meal)
+    mealsByDateKey.get(dateKey).push(meal)
   }
 
-  return Array.from(byDate.values())
-    .sort((a, b) => b.date - a.date)
-    .map((group) => ({
-      ...group,
+  const today = startOfDay(new Date())
+  const columns = []
+
+  for (let i = 0; i < DAYS_IN_VIEW; i++) {
+    const dayDate = new Date(today)
+    dayDate.setDate(today.getDate() - i)
+    const dateKey = dayDate.toLocaleDateString('en-CA')
+    const dayMeals = mealsByDateKey.get(dateKey) ?? []
+
+    const periods = { morning: [], afternoon: [], evening: [] }
+    for (const meal of dayMeals) {
+      periods[getTimeOfDay(new Date(meal.eaten_at))].push(meal)
+    }
+
+    columns.push({
+      date: dayDate,
+      dateKey,
+      label: formatFriendlyDate(dayDate),
+      hasMeals: dayMeals.length > 0,
       periods: TIME_OF_DAY_ORDER.map((period) => ({
         key: period,
         label: TIME_OF_DAY_LABELS[period],
-        meals: group.periods[period].sort(
+        meals: periods[period].sort(
           (a, b) => new Date(b.eaten_at) - new Date(a.eaten_at),
         ),
-      })).filter((period) => period.meals.length > 0),
-    }))
-    .filter((group) => group.periods.length > 0)
+      })),
+    })
+  }
+
+  return columns
 }
 
 function DailyLog() {
@@ -83,14 +105,14 @@ function DailyLog() {
     setLoading(true)
     setError(null)
 
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    sevenDaysAgo.setHours(0, 0, 0, 0)
+    const rangeStart = new Date()
+    rangeStart.setDate(rangeStart.getDate() - (DAYS_IN_VIEW - 1))
+    rangeStart.setHours(0, 0, 0, 0)
 
     const { data, error: fetchError } = await supabase
       .from('meals')
       .select('*')
-      .gte('eaten_at', sevenDaysAgo.toISOString())
+      .gte('eaten_at', rangeStart.toISOString())
       .order('eaten_at', { ascending: false })
 
     if (fetchError) {
@@ -107,18 +129,19 @@ function DailyLog() {
     fetchMeals()
   }, [fetchMeals])
 
-  const groupedMeals = useMemo(() => groupMealsByDateAndTime(meals), [meals])
+  const weekColumns = useMemo(() => buildWeekColumns(meals), [meals])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!foodName.trim() || !portionSize.trim() || !eatenAt) return
+    if (!foodName.trim() || !eatenAt) return
 
     setSubmitting(true)
     setError(null)
 
+    const trimmedPortion = portionSize.trim()
     const { error: insertError } = await supabase.from('meals').insert({
       food_name: foodName.trim(),
-      portion_size: portionSize.trim(),
+      portion_size: trimmedPortion || null,
       eaten_at: new Date(eatenAt).toISOString(),
     })
 
@@ -150,41 +173,40 @@ function DailyLog() {
   return (
     <div className="daily-log-page">
       <header className="daily-log-header">
-        <h1 className="daily-log-title">
-          Daily Log <span className="app-emoji" aria-hidden="true">🐾</span>
-        </h1>
-        <p className="daily-log-subtitle">Track what your dog ate over the last 7 days</p>
+        <h1 className="daily-log-title">Daily Log</h1>
+        <p className="daily-log-subtitle">Last 7 days</p>
       </header>
 
-      <section className="daily-log-card">
-        <h2 className="daily-log-section-title">Add a meal</h2>
-        <form className="meal-form" onSubmit={handleSubmit}>
-          <label className="form-field">
-            <span>Food name</span>
+      <section className="meal-form-bar">
+        <form className="meal-form meal-form--inline" onSubmit={handleSubmit}>
+          <label className="form-field form-field--food">
+            <span className="visually-hidden">Food name</span>
             <input
               type="text"
               value={foodName}
               onChange={(e) => setFoodName(e.target.value)}
-              placeholder="e.g. Chicken & rice kibble"
+              placeholder="Food name"
+              aria-label="Food name"
               required
             />
           </label>
-          <label className="form-field">
-            <span>Portion size</span>
+          <label className="form-field form-field--portion">
+            <span className="visually-hidden">Portion size</span>
             <input
               type="text"
               value={portionSize}
               onChange={(e) => setPortionSize(e.target.value)}
-              placeholder="e.g. 1 cup"
-              required
+              placeholder="e.g. 1 cup (optional)"
+              aria-label="Portion size (optional)"
             />
           </label>
-          <label className="form-field">
-            <span>When eaten</span>
+          <label className="form-field form-field--time">
+            <span className="visually-hidden">When eaten</span>
             <input
               type="datetime-local"
               value={eatenAt}
               onChange={(e) => setEatenAt(e.target.value)}
+              aria-label="When eaten"
               required
             />
           </label>
@@ -196,42 +218,60 @@ function DailyLog() {
 
       {error && <p className="daily-log-error">{error}</p>}
 
-      <section className="daily-log-list-section">
+      <section className="daily-log-week">
         {loading ? (
-          <p className="daily-log-loading">Loading meals...</p>
-        ) : groupedMeals.length === 0 ? (
-          <p className="daily-log-empty">No meals logged yet</p>
+          <p className="daily-log-status">Loading meals...</p>
         ) : (
-          groupedMeals.map((dayGroup) => (
-            <div key={dayGroup.date.toISOString()} className="day-group">
-              <h2 className="day-group-title">{formatDateHeading(dayGroup.date)}</h2>
-              {dayGroup.periods.map((period) => (
-                <div key={period.key} className="time-group">
-                  <h3 className="time-group-title">{period.label}</h3>
-                  <ul className="meal-entries">
-                    {period.meals.map((meal) => (
-                      <li key={meal.id} className="meal-entry">
-                        <div className="meal-entry-body">
-                          <p className="meal-entry-name">{meal.food_name}</p>
-                          <p className="meal-entry-meta">
-                            {meal.portion_size} · {formatTime(new Date(meal.eaten_at))}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          className="meal-delete-btn"
-                          onClick={() => handleDelete(meal.id)}
-                          aria-label={`Delete ${meal.food_name}`}
-                        >
-                          Delete
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+          <div className="days-scroll">
+            <div className="days-columns">
+              {weekColumns.map((dayColumn) => (
+                <article
+                  key={dayColumn.dateKey}
+                  className={`day-column${dayColumn.hasMeals ? '' : ' day-column--empty'}`}
+                >
+                  <h2 className="day-column-title">{dayColumn.label}</h2>
+
+                  <div className="day-column-body">
+                    {dayColumn.periods.map(
+                      (period) =>
+                        period.meals.length > 0 && (
+                          <div key={period.key} className="time-group">
+                            <p className="time-group-label">{period.label}</p>
+                            <ul className="meal-entries">
+                              {period.meals.map((meal) => {
+                                const eatenAtDate = new Date(meal.eaten_at)
+                                const portion = meal.portion_size?.trim()
+                                return (
+                                  <li key={meal.id} className="meal-entry">
+                                    <div className="meal-entry-body">
+                                      <p className="meal-entry-name">{meal.food_name}</p>
+                                      {portion && (
+                                        <p className="meal-entry-portion">{portion}</p>
+                                      )}
+                                      <p className="meal-entry-time">
+                                        {formatTime12Hour(eatenAtDate)}
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      className="meal-delete-link"
+                                      onClick={() => handleDelete(meal.id)}
+                                      aria-label={`Delete ${meal.food_name}`}
+                                    >
+                                      Delete
+                                    </button>
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                          </div>
+                        ),
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
-          ))
+          </div>
         )}
       </section>
     </div>
