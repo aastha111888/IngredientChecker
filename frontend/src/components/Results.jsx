@@ -22,12 +22,20 @@ const ROW_STYLES = {
   uncertain: 'row-uncertain',
 }
 
+const STATUS_ORDER = { toxic: 0, uncertain: 1, safe: 2 }
+
 function Results({ result }) {
   if (!result) return null
 
   const overall = result.overall?.toLowerCase() ?? 'uncertain'
   const verdictClass = VERDICT_STYLES[overall] ?? VERDICT_STYLES.uncertain
   const verdictLabel = VERDICT_LABELS[overall] ?? 'Uncertain'
+
+  const sortedIngredients = [...(result.ingredients ?? [])].sort((a, b) => {
+    const orderA = STATUS_ORDER[a.status?.toLowerCase()] ?? 1
+    const orderB = STATUS_ORDER[b.status?.toLowerCase()] ?? 1
+    return orderA - orderB
+  })
 
   return (
     <section className="results">
@@ -43,10 +51,10 @@ function Results({ result }) {
         )}
       </div>
 
-      {result.ingredients?.length > 0 && (
+      {sortedIngredients.length > 0 && (
         <div className="ingredient-list-scroll">
           <ul className="ingredient-list">
-            {result.ingredients.map((ingredient, index) => {
+            {sortedIngredients.map((ingredient, index) => {
               const status = ingredient.status?.toLowerCase() ?? 'uncertain'
               const badgeClass = STATUS_STYLES[status] ?? STATUS_STYLES.uncertain
               const rowClass = ROW_STYLES[status] ?? ROW_STYLES.uncertain
