@@ -2,12 +2,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient.js'
 import './MyDogs.css'
 
+function getDogInitial(name) {
+  const trimmed = name?.trim()
+  if (!trimmed) return '?'
+  return trimmed.charAt(0).toUpperCase()
+}
+
 function formatDogDetails(dog) {
   const parts = []
   if (dog.breed?.trim()) parts.push(dog.breed.trim())
   if (dog.age != null && dog.age !== '') {
     const years = Number(dog.age)
-    parts.push(`${years} ${years === 1 ? 'year' : 'years'} old`)
+    if (years > 0) {
+      parts.push(`${years} ${years === 1 ? 'year' : 'years'} old`)
+    }
   }
   return parts.join(' · ')
 }
@@ -208,7 +216,10 @@ function MyDogs() {
               const details = formatDogDetails(dog)
 
               return (
-                <li key={dog.id} className="my-dogs-card">
+                <li
+                  key={dog.id}
+                  className={`my-dogs-card${isEditing ? ' my-dogs-card--editing' : ''}`}
+                >
                   {isEditing ? (
                     <form
                       className="my-dogs-card-edit"
@@ -217,52 +228,57 @@ function MyDogs() {
                         handleSaveEdit(dog.id)
                       }}
                     >
-                      <label className="my-dogs-field">
-                        <span className="my-dogs-label">Name</span>
-                        <input
-                          type="text"
-                          value={editForm.name}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({ ...prev, name: e.target.value }))
-                          }
-                          required
-                        />
-                      </label>
-                      <label className="my-dogs-field">
-                        <span className="my-dogs-label">Breed</span>
-                        <input
-                          type="text"
-                          value={editForm.breed}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({ ...prev, breed: e.target.value }))
-                          }
-                          placeholder="Optional"
-                        />
-                      </label>
-                      <label className="my-dogs-field my-dogs-field--age">
-                        <span className="my-dogs-label">Age (years)</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={editForm.age}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({ ...prev, age: e.target.value }))
-                          }
-                          placeholder="Optional"
-                        />
-                      </label>
-                      <div className="my-dogs-card-actions">
+                      <div className="my-dogs-card-header">
+                        <div className="my-dogs-avatar" aria-hidden="true">
+                          {getDogInitial(editForm.name)}
+                        </div>
+                        <div className="my-dogs-card-edit-fields">
+                          <input
+                            type="text"
+                            className="my-dogs-input-compact"
+                            value={editForm.name}
+                            onChange={(e) =>
+                              setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                            }
+                            placeholder="Name"
+                            aria-label="Name"
+                            required
+                          />
+                          <input
+                            type="text"
+                            className="my-dogs-input-compact"
+                            value={editForm.breed}
+                            onChange={(e) =>
+                              setEditForm((prev) => ({ ...prev, breed: e.target.value }))
+                            }
+                            placeholder="Breed"
+                            aria-label="Breed"
+                          />
+                          <input
+                            type="number"
+                            className="my-dogs-input-compact"
+                            min="0"
+                            step="1"
+                            value={editForm.age}
+                            onChange={(e) =>
+                              setEditForm((prev) => ({ ...prev, age: e.target.value }))
+                            }
+                            placeholder="Age"
+                            aria-label="Age in years"
+                          />
+                        </div>
+                      </div>
+                      <div className="my-dogs-card-actions my-dogs-card-actions--compact">
                         <button
                           type="submit"
-                          className="my-dogs-btn my-dogs-btn--primary"
+                          className="my-dogs-btn my-dogs-btn--primary my-dogs-btn--sm"
                           disabled={savingId === dog.id}
                         >
                           {savingId === dog.id ? 'Saving...' : 'Save'}
                         </button>
                         <button
                           type="button"
-                          className="my-dogs-btn my-dogs-btn--ghost"
+                          className="my-dogs-btn my-dogs-btn--ghost my-dogs-btn--sm"
                           onClick={cancelEdit}
                           disabled={savingId === dog.id}
                         >
@@ -272,19 +288,26 @@ function MyDogs() {
                     </form>
                   ) : (
                     <>
-                      <h2 className="my-dogs-card-name">{dog.name}</h2>
-                      {details && <p className="my-dogs-card-details">{details}</p>}
+                      <div className="my-dogs-card-header">
+                        <div className="my-dogs-avatar" aria-hidden="true">
+                          {getDogInitial(dog.name)}
+                        </div>
+                        <div className="my-dogs-card-info">
+                          <h2 className="my-dogs-card-name">{dog.name}</h2>
+                          {details && <p className="my-dogs-card-details">{details}</p>}
+                        </div>
+                      </div>
                       <div className="my-dogs-card-actions">
                         <button
                           type="button"
-                          className="my-dogs-btn my-dogs-btn--ghost"
+                          className="my-dogs-btn my-dogs-btn--edit"
                           onClick={() => startEdit(dog)}
                         >
                           Edit
                         </button>
                         <button
                           type="button"
-                          className="my-dogs-btn my-dogs-btn--danger"
+                          className="my-dogs-btn my-dogs-btn--delete"
                           onClick={() => handleDelete(dog.id)}
                           disabled={deletingId === dog.id}
                         >

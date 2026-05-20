@@ -99,18 +99,18 @@ function AppMenu({ dogs, selectedDog, onSelectDog }) {
             <button
               type="button"
               role="menuitem"
-              className={`app-menu-item${location.pathname === '/dogs' ? ' app-menu-item-active' : ''}`}
-              onClick={() => navigateTo('/dogs')}
-            >
-              My Dogs
-            </button>
-            <button
-              type="button"
-              role="menuitem"
               className={`app-menu-item${location.pathname === '/checker' ? ' app-menu-item-active' : ''}`}
               onClick={() => navigateTo('/checker')}
             >
               Ingredient Checker
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={`app-menu-item${location.pathname === '/dogs' ? ' app-menu-item-active' : ''}`}
+              onClick={() => navigateTo('/dogs')}
+            >
+              My Dogs
             </button>
           </div>
         )}
