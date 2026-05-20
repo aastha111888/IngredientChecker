@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient.js'
 import './DailyLog.css'
 
@@ -92,7 +93,7 @@ function buildWeekColumns(meals) {
   return columns
 }
 
-function DailyLog() {
+function DailyLog({ dogs, dogsReady, selectedDog }) {
   const [meals, setMeals] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -102,6 +103,13 @@ function DailyLog() {
   const [eatenAt, setEatenAt] = useState(toDatetimeLocalValue(new Date()))
 
   const fetchMeals = useCallback(async () => {
+    if (!selectedDog) {
+      setMeals([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -112,6 +120,7 @@ function DailyLog() {
     const { data, error: fetchError } = await supabase
       .from('meals')
       .select('*')
+      .eq('dog_id', selectedDog.id)
       .gte('eaten_at', rangeStart.toISOString())
       .order('eaten_at', { ascending: false })
 
@@ -123,7 +132,7 @@ function DailyLog() {
     }
 
     setLoading(false)
-  }, [])
+  }, [selectedDog])
 
   useEffect(() => {
     fetchMeals()
@@ -133,7 +142,7 @@ function DailyLog() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!foodName.trim() || !eatenAt) return
+    if (!selectedDog || !foodName.trim() || !eatenAt) return
 
     setSubmitting(true)
     setError(null)
@@ -143,6 +152,7 @@ function DailyLog() {
       food_name: foodName.trim(),
       portion_size: trimmedPortion || null,
       eaten_at: new Date(eatenAt).toISOString(),
+      dog_id: selectedDog.id,
     })
 
     if (insertError) {
@@ -170,11 +180,42 @@ function DailyLog() {
     setMeals((prev) => prev.filter((meal) => meal.id !== id))
   }
 
+  if (dogsReady && dogs.length === 0) {
+    return (
+      <div className="daily-log-page">
+        <header className="daily-log-header">
+          <h1 className="daily-log-title">Daily Log</h1>
+          <p className="daily-log-subtitle">Last 7 days</p>
+        </header>
+        <div className="daily-log-empty-dogs">
+          <p className="daily-log-empty-dogs-text">No dogs added yet</p>
+          <Link to="/dogs" className="daily-log-add-dog-btn">
+            Add a Dog
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!dogsReady || !selectedDog) {
+    return (
+      <div className="daily-log-page">
+        <header className="daily-log-header">
+          <h1 className="daily-log-title">Daily Log</h1>
+          <p className="daily-log-subtitle">Last 7 days</p>
+        </header>
+        <p className="daily-log-select-prompt">Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="daily-log-page">
       <header className="daily-log-header">
         <h1 className="daily-log-title">Daily Log</h1>
-        <p className="daily-log-subtitle">Last 7 days</p>
+        <p className="daily-log-subtitle">
+          Last 7 days · {selectedDog.name}
+        </p>
       </header>
 
       <section className="meal-form-bar">
