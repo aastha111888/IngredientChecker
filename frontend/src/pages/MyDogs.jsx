@@ -82,9 +82,19 @@ function MyDogs() {
     setSubmitting(true)
     setError(null)
 
-    const { error: insertError } = await supabase
-      .from('dogs')
-      .insert(buildDogPayload(name, breed, age))
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      setError('You must be logged in to add a dog.')
+      setSubmitting(false)
+      return
+    }
+
+    const { error: insertError } = await supabase.from('dogs').insert({
+      ...buildDogPayload(name, breed, age),
+      user_id: user.id,
+    })
 
     if (insertError) {
       setError(insertError.message)

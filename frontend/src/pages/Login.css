@@ -1,0 +1,130 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f5f4f0;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 22rem;
+  padding: 2rem 1.75rem;
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.login-title {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
+  line-height: 1.2;
+}
+
+.login-emoji {
+  font-weight: 400;
+}
+
+.login-error {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border-left: 2px solid #c1121f;
+  background: #fef8f8;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: #c1121f;
+  line-height: 1.4;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.login-label {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-heading);
+}
+
+.login-field input {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--text-heading);
+  background: #ffffff;
+  transition: border-color 0.15s;
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: #2d6a4f;
+}
+
+.login-btn {
+  margin-top: 0.25rem;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.15s;
+}
+
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-btn--primary {
+  border: none;
+  background: #2d6a4f;
+  color: #ffffff;
+}
+
+.login-btn--primary:hover:not(:disabled) {
+  background: #245a43;
+}
+
+.login-switch {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--text-body);
+}
+
+.login-switch-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  color: #2d6a4f;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.login-switch-link:hover {
+  color: #245a43;
+}

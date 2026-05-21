@@ -7,6 +7,10 @@
   background: #f5f4f0;
 }
 
+.landing-page--guest {
+  min-height: 100vh;
+}
+
 .landing-content {
   max-width: 32rem;
   text-align: center;

@@ -163,6 +163,28 @@ body {
   background: rgba(45, 106, 79, 0.1);
 }
 
+.app-menu-item--logout {
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  color: #6b6b6b;
+}
+
+.app-menu-item--logout:hover {
+  color: var(--text-heading);
+}
+
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: var(--text-body);
+  background: var(--bg);
+}
+
 .layout-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -147,12 +147,22 @@ function DailyLog({ dogs, dogsReady, selectedDog }) {
     setSubmitting(true)
     setError(null)
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      setError('You must be logged in to log a meal.')
+      setSubmitting(false)
+      return
+    }
+
     const trimmedPortion = portionSize.trim()
     const { error: insertError } = await supabase.from('meals').insert({
       food_name: foodName.trim(),
       portion_size: trimmedPortion || null,
       eaten_at: new Date(eatenAt).toISOString(),
       dog_id: selectedDog.id,
+      user_id: user.id,
     })
 
     if (insertError) {

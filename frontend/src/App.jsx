@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import ImageUploader from './components/ImageUploader.jsx'
 import Results from './components/Results.jsx'
 import DailyLog from './pages/DailyLog.jsx'
 import Landing from './pages/Landing.jsx'
+import Login from './pages/Login.jsx'
 import MyDogs from './pages/MyDogs.jsx'
 import { supabase } from './supabaseClient.js'
 import './App.css'
@@ -31,7 +39,7 @@ function IngredientCheckerPage() {
   )
 }
 
-function AppMenu({ dogs, selectedDog, onSelectDog }) {
+function AppMenu({ dogs, selectedDog, onSelectDog, onSignOut }) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
   const navigate = useNavigate()
@@ -63,6 +71,11 @@ function AppMenu({ dogs, selectedDog, onSelectDog }) {
     }
     const dog = dogs.find((d) => d.id === dogId)
     onSelectDog(dog ?? null)
+  }
+
+  const handleSignOut = async () => {
+    setOpen(false)
+    await onSignOut()
   }
 
   return (
@@ -112,6 +125,14 @@ function AppMenu({ dogs, selectedDog, onSelectDog }) {
             >
               My Dogs
             </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="app-menu-item app-menu-item--logout"
+              onClick={handleSignOut}
+            >
+              Log Out
+            </button>
           </div>
         )}
       </div>
@@ -142,7 +163,7 @@ function resolveSelectedDog(list, prev) {
   return list[0]
 }
 
-function AppShell() {
+function AuthenticatedApp() {
   const [dogs, setDogs] = useState([])
   const [dogsReady, setDogsReady] = useState(false)
   const [selectedDog, setSelectedDog] = useState(null)
@@ -160,20 +181,67 @@ function AppShell() {
     fetchDogs()
   }, [fetchDogs, location.pathname])
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+  }
+
   return (
     <div className="app-shell">
-      <AppMenu dogs={dogs} selectedDog={selectedDog} onSelectDog={setSelectedDog} />
+      <AppMenu
+        dogs={dogs}
+        selectedDog={selectedDog}
+        onSelectDog={setSelectedDog}
+        onSignOut={handleSignOut}
+      />
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Landing isLoggedIn />} />
         <Route
           path="/log"
           element={<DailyLog dogs={dogs} dogsReady={dogsReady} selectedDog={selectedDog} />}
         />
         <Route path="/checker" element={<IngredientCheckerPage />} />
         <Route path="/dogs" element={<MyDogs />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   )
+}
+
+function UnauthenticatedApp() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Landing isLoggedIn={false} />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+function AppShell() {
+  const [session, setSession] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession)
+      setAuthReady(true)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (!authReady) {
+    return <div className="auth-loading">Loading...</div>
+  }
+
+  if (!session) {
+    return <UnauthenticatedApp />
+  }
+
+  return <AuthenticatedApp />
 }
 
 function App() {
