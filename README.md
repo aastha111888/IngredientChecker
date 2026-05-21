@@ -8,15 +8,19 @@ Keep your pup safe and healthy — check food ingredients for toxins and track w
 
 ### Ingredient Checker
 
-Upload or take a photo of any food label. Claude reads and analyzes every ingredient for dog safety, with color-coded results: green (safe), red (toxic), yellow (uncertain).
+Upload or take a photo of any food label. Claude reads and analyzes every ingredient for dog safety, with color-coded results: green (safe), red (toxic), yellow (uncertain). Ingredients are sorted with toxic at the top and safe at the bottom.
 
 ### Daily Log
 
-Track what your dog eats over the past 7 days, grouped by day in a column view. Add food name, portion size, and time for each meal.
+Track what your dog eats over the past 7 days, grouped by day in a column view. Add food name, portion size, and time for each meal. Portion size is optional.
 
 ### My Dogs
 
-Manage multiple dogs with name, breed, and age. Switch between dogs using the dropdown in the nav bar.
+Manage multiple dogs with name, breed, and age. Switch between dogs using the dropdown in the nav bar. Auto-selects your dog if you only have one. Supports adding, editing, and deleting dogs.
+
+### Authentication
+
+Private accounts with email and password login powered by Supabase Auth. Each user's data is fully private with Row Level Security — no one else can see or edit your dogs or meal logs.
 
 ## Tech Stack
 
@@ -24,6 +28,7 @@ Manage multiple dogs with name, breed, and age. Switch between dogs using the dr
 - **Backend:** Python, Flask, deployed on Render
 - **AI:** Claude API (claude-sonnet-4-6) for vision and ingredient analysis
 - **Database:** Supabase (PostgreSQL)
+- **Authentication:** Supabase Auth
 - **CI/CD:** GitHub Actions with pytest
 
 ## How to Run Locally
